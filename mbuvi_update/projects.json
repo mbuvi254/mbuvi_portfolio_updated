@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "title": "Survey System",
+    "category": "PHP",
+    "category_id": 1,
+    "date": "May 27, 2024",
+    "summary": "Online and field survey system.",
+    "description": "Online and Field Survey System.",
+    "image": "https://mbuvi.cm.co.ke/static/projects/Screenshot%20from%202024-05-27%2012-15-17.png",
+    "demo": "https://www.survey.cybermaisha.co.ke",
+    "source": "https://github.com/mbuvi254/cm_survey"
+  },
+  {
+    "id": 3,
+    "title": "Loan App",
+    "category": "PHP",
+    "category_id": 1,
+    "date": "May 27, 2024",
+    "summary": "A web application for loan workflows.",
+    "description": "Loan App \u2014 explore the live application for its current functionality.",
+    "image": "https://mbuvi.cm.co.ke/static/projects/apply.png",
+    "demo": "https://lms.cybermaisha.co.ke",
+    "source": null
+  },
+  {
+    "id": 4,
+    "title": "BMI APP",
+    "category": "Python",
+    "category_id": 2,
+    "date": "January 24, 2025",
+    "summary": "A health-focused BMI web application.",
+    "description": "BMI APP \u2014 explore the live application for its current functionality.",
+    "image": "https://mbuvi.cm.co.ke/static/projects/Screenshot%20from%202025-01-24%2019-28-51.png",
+    "demo": "https://health.cm.co.ke",
+    "source": null
+  }
+]

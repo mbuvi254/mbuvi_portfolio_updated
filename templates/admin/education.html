@@ -1,0 +1,51 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{ptitle}}</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+<thead>
+    <th>#</th>
+    <th>Certification</th>
+    <th>Institution</th>
+    <th>Graduation</th>
+    <th>Date</th>
+    <th>Actions</th>
+</thead>
+<tbody>
+{% if education :%}
+{% for education in education %}
+    <tr>
+        <td>{{education[0]}}</td>
+        <td>{{education[1]}}</td>
+        <td>{{education[2]}}</td>
+        <td>{{education[3].strftime('%B %d,%Y')}}</td>
+        <td>{{education[4].strftime('%B %d,%Y')}}</td>
+        <td>
+            <a href="/dashboard/education/edit/{{education[0]}}" class="btn btn-primary"><i class="fa fa-edit"></i></a>
+            <form class="inline-form" method="post" action="/dashboard/education/delete/{{education[0]}}">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}<button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button></form>
+        </td>
+    </tr>
+{% endfor%}
+{% else %}
+<tr><td colspan="4"><p class="text-center">No Projects </p></td></tr>
+{% endif %}
+</tbody>
+<tfoot>
+    <th>#</th>
+    <th>Certification</th>
+    <th>Institution</th>
+    <th>Graduation</th>
+    <th>Date</th>
+    <th>Actions</th>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
+
+{% endblock %}

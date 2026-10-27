@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if category: %}
+<section class="pt-4 box">
+    <div class="container">
+        <h1 class="mt-5 mb-4 text-center">{{category[1]}} Projects</h1>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <div id="filters" class="button-group">
+                    <a class="btn btn-outline-secondary" href="/projects" >All</a>
+                    <a class="btn btn-secondary" href="/project/category/{{category[0]}}">{{category[1]}}</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div id="projects" class="row pt-4">
+            {% if projects:%}
+            {% for project in projects %}
+            <div class="col-md-4 shadow rounded p-3 project-item {{ project[9]|lower }}">
+                <div class="card h-100">
+                    <img class="card-img-top img-fluid" src="/static/projects/{{ project[3] }}" alt="Card image cap" style="height:12rem;">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ project[1] }}</h5>
+                        <p class="card-text"><a class="badge bg-secondary text-decoration-none link-light" href="">{{ project[9]}}</a></p>
+                        <p class="card-text">{{ project[7].strftime('%B %d,%Y') }}</p>
+                        <div class="d-grid gap-2 d-sm-flex justify-content-center mb-5">
+                            <a class="btn btn-outline-dark" href="https://{{ project[5] }}"><i class="fa-solid fa-link"></i>Live Demo</a>
+                            <a class="btn btn-outline-dark" href="/project/{{ project[0] }}"><i class="fa-solid fa-diagram-project"></i> View Project</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% else %}
+<div class="shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+    <div class="card">
+    <div class="card-body">
+<p class="card-text">No Projects Found</p>
+    </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

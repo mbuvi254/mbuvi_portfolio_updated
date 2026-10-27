@@ -1,0 +1,32 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+
+{% if message :%}
+<div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>{{message[4]}}</h2>
+        <hr>
+        <div class="card">
+          <div class="card-body">
+            <p><strong>From:</strong> {{message[1]}} &lt;{{message[3]}}&gt;</p>
+            <p><strong>To:</strong> Daniel Mulatya &lt;mbuvi@cm.co.ke&gt;</p>
+            <p><strong>Date:</strong> {{message[7].strftime('%B %d,%Y')}}</p>
+            <p><strong>Subject:</strong> {{message[4]}}</p>
+            <hr>
+            <div class="email-body">
+              <p>Hello Mbuvi,</p>
+              <p>{{message[5]}}.</p>
+              <p>Regards,<br>{{message[1]}}</p>
+            </div>
+          </div>
+          <a href="/dashboard/message/reply/{{message[0]}}" class="btn btn-block btn-flat btn-primary">Reply Message</a>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  
+  {% endif %}
+
+{% endblock%}

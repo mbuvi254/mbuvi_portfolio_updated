@@ -1,0 +1,20 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+<div class="card card-secondary">
+    <div class="card-header">
+        <h6>{{ptitle}}</h6>
+    </div>
+<div class="card-body">
+<form action="/dashboard/resume/add" method="POST" enctype="multipart/form-data">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <div class="form-group">
+    <label for="description">Resume</label>
+    <input type="file" name="file" class="form-control" id="file" required>
+    </div>
+</div>
+<button type="submit" class="btn btn-primary btn-block">Add Resume</button>
+</form>
+</div>
+
+{% endblock %}
+
+  

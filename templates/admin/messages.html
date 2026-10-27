@@ -1,0 +1,50 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+
+<div class="container">
+    <div class="row">
+      <div class="col-md-3">
+        <!-- Sidebar -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Folders</h5>
+            <ul class="list-group">
+              <li class="list-group-item"><a href="/dashboard/messages/inbox">Inbox</a></li>
+              <li class="list-group-item">Sent</li>
+              <li class="list-group-item">Drafts</li>
+              <!-- Add more folders as needed -->
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <!-- Email List -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Inbox</h5>
+            <table class="table">
+              <tbody>
+                <tr>
+                  <td>Sender</td>
+                  <td>Subject</td>
+                  <td>Date</td>
+                </tr>
+                {% for message in messages %}
+              
+                <tr>
+                  <td>{{message[1]}}</td>
+                  <td><a href="/dashboard/message/read/{{message[0]}}">{{message[4]}}</a></td>
+                  <td> {{message[7].strftime('%B %d,%Y')}}</td>
+                </tr>
+                {% endfor %}
+              
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+{% endblock%}

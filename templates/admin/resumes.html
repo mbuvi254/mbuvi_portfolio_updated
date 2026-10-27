@@ -1,0 +1,48 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+
+ <!-- DataTales Example -->
+ <div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{ptitle}}</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+
+
+<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+<thead>
+    <th>#</th>
+    <th>Resume</th>
+    <th>Resume Date</th>
+    <th>Actions</th>
+</thead>
+<tbody>
+{% if resumes :%}
+{% for resume in resumes %}
+    <tr>
+        <td>{{resume[0]}}</td>
+        <td>{{resume[1]}}</td>
+        <td>{{resume[2]}}</td>
+        <td>
+            <a href="/dashboard/resume/read/{{resume[0]}}" class="btn btn-primary">Read</a>
+            <form class="inline-form" method="post" action="/dashboard/resume/delete/{{resume[0]}}">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}<button type="submit" class="btn btn-danger">Delete</button></form>
+        </td>
+    </tr>
+{% endfor%}
+{% else %}
+<tr><td colspan="4"><p class="text-center">No About Record</p></td></tr>
+{% endif %}
+</tbody>
+<tfoot>
+    <th>#</th>
+    <th>Resume</th>
+    <th>Resume Date</th>
+    <th>Actions</th>
+</tfoot>
+</table>
+
+</div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+<div class="card card-secondary">
+    <div class="card-header">
+        <h6>{{ptitle}}</h6>
+    </div>
+<div class="card-body">
+{% if project %}
+<form action="/dashboard/project/edit/{{project[0]}}" method="POST" enctype="multipart/form-data">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+   <div class="form-group">
+    <img src="{{url_for('static',filename='projects/project[3]')}}">
+    <img src="/static/projects/{{project[3]}}" height="150rem">
+   </div>
+    <div class="form-group">
+        <label for="description">Poject Image</label>
+        <input type="file" name="file" class="form-control" id="file" value="{{project[3]}}">
+    </div>
+    <div class="form-group">
+        <label for="description">Project Category</label>
+        <select class="form-control" name="projectCategory" id="projectCategory">
+            <option value="{{project[8]}}">{{project[9]}}</option>
+            {% for category in categories %}
+            <option value="{{category[0]}}">{{category[1]}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+    <label for="description">Poject Title</label>
+    <input type="text" name="projectTitle" class="form-control" id="projectTitle" value="{{project[1]}}" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Project Website</label>
+        <input type="text" name="projectWebsite" class="form-control" id="projectWebsite" value="{{project[5]}}"  required>
+    </div>
+    <div class="form-group">
+        <label for="description">Project Github</label>
+        <input type="text" name="projectGithub" class="form-control" id="projectGithub" value="{{project[6]}}" required>
+    </div>
+    <div class="form-group">
+    <label for="description">Project Details</label>
+    <textarea class="form-control" name="projectDetails" id="projectDetails" rows="3" required value="{{project[2]}}">{{project[2]}}</textarea>
+    </div>
+</div>
+
+<button type="submit" class="btn btn-primary btn-block">Edit Project</button>
+</form>
+{% endif %}
+</div>
+
+{% endblock %}
+
+  

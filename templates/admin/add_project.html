@@ -1,0 +1,46 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+<div class="card card-secondary">
+    <div class="card-header">
+        <h6>{{ptitle}}</h6>
+    </div>
+<div class="card-body">
+<form action="/dashboard/project/add" method="POST" enctype="multipart/form-data">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <div class="form-group">
+        <label for="description">Project Category</label>
+        <select class="form-control" name="projectCategory" id="projectCategory">
+            <option value="">Select Category</option>
+            {% for category in categories %}
+            <option value="{{category[0]}}">{{category[1]}}</option>
+            {% endfor %}
+        </select>
+        </div>
+    <div class="form-group">
+        <label for="description">Project Image</label>
+        <input type="file" name="file" class="form-control" id="file" required>
+        </div>
+    <div class="form-group">
+    <label for="description">Project Title</label>
+    <input type="text" name="projectTitle" class="form-control" id="projectTitle" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Project Website</label>
+        <input type="text" name="projectWebsite" class="form-control" id="projectWebsite" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Project Github</label>
+        <input type="text" name="projectGithub" class="form-control" id="projectGithub" required>
+    </div>
+    <div class="form-group">
+    <label for="description">Project Details</label>
+    <textarea class="form-control" name="projectDetails" id="projectDetails" rows="3" required></textarea>
+    </div>
+</div>
+
+<button type="submit" class="btn btn-primary btn-block">Add Project</button>
+</form>
+</div>
+
+{% endblock %}
+
+  

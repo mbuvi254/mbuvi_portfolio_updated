@@ -1,0 +1,29 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+<div class="card card-secondary">
+    <div class="card-header">
+        <h6>{{ptitle}}</h6>
+    </div>
+<div class="card-body">
+<form action="/dashboard/education/add" method="POST">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <div class="form-group">
+    <label for="description">Certificate</label>
+    <input type="text" name="certification" class="form-control" id="certification" required>
+    </div>
+    <div class="form-group">
+    <label for="description">Institution</label>
+    <input type="text" name="institution" class="form-control" id="institution" required>
+    </div>
+    <div class="form-group">
+    <label for="description">Graduation</label>
+    <input type="date" name="graduation" class="form-control" id="graduation" required>
+    </div>
+</div>
+<button type="submit" class="btn btn-primary btn-block">Add Education</button>
+
+</form>
+</div>
+
+{% endblock %}
+
+  

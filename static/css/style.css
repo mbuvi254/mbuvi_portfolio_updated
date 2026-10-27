@@ -1,0 +1,47 @@
+    /* Preloader styles */
+    #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        z-index: 9999;
+        display: flex;
+        flex-direction: column; /* Align spinner and text vertically */
+        justify-content: center;
+        align-items: center;
+    }
+
+    #preloader .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s linear infinite;
+    }
+
+    #preloader p {
+        color: #fff;
+        margin-top: 10px; /* Adjust spacing between spinner and text */
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .box {
+        transition: transform 0.5s ease-in-out;
+        transform: translateX(-100%);
+    }
+    
+    .slide-in {
+        transform: translateX(0);
+    }
+
+    h1, h2, h3, h4, h5, h6 ,p,label,::placeholder,.nav-link,.g{
+        font-family: "Playfair Display", Georgia, "Times New Roman", serif/*rtl:Amiri, Georgia, "Times New Roman", serif*/;
+      }

@@ -1,0 +1,48 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+<p class="muted">The latest 500 administrator sign-ins and sign-outs. Times are in Africa/Nairobi.</p>{% if error %}<p class="alert alert-warning" role="alert">{{ error }}</p>{% endif %}<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{ptitle}}</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+
+<table class="table table-bordered" id="dataTable" data-order='[[0,"desc"]]' width="100%" cellspacing="0">
+<thead>
+    <th>#</th>
+    <th>Email</th>
+    <th>IP</th>
+    <th>Login Time</th>
+    <th>Logout Time</th>
+    <th>Log Date</th>
+</thead>
+<tbody>
+{% if admin_logs :%}
+{% for log in admin_logs %}
+    <tr>
+        <td>{{log[0]}}</td>
+        <td>{{log[1]}}</td>
+        <td>{{log[2]}}</td>
+        <td>{{log[3]}}</td>
+        <td>{{log[4]}}</td>
+        <td>{{ log[5].strftime('%B %d, %Y ') }}</td>       
+    </tr>
+{% endfor%}
+{% else %}
+<tr><td colspan="6"><p class="text-center">No Logs </p></td></tr>
+{% endif %}
+</tbody>
+<tfoot>
+    <th>#</th>
+    <th>Email</th>
+    <th>IP</th>
+    <th>Login Time</th>
+    <th>Logout Time</th>
+    <th>Log Date</th>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
+
+{% endblock %}

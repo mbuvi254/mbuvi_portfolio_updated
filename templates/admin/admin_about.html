@@ -1,0 +1,52 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+
+
+   <!-- DataTales Example -->
+   <div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{ptitle}}</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+
+<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+<thead>
+    <th>#</th>
+    <th>About Title</th>
+    <th>About Date</th>
+    <th>Actions</th>
+</thead>
+<tbody>
+{% if about :%}
+{% for about in about %}
+    <tr>
+        <td>{{about[0]}}</td>
+        <td>{{about[1]}}</td>
+        <td>{{about[3]}}</td>
+        <td>
+            <a href="/dashboard/about/edit/{{about[0]}}" class="btn btn-primary"><i class="fa fa-edit"></i></a>
+            <form class="inline-form" method="post" action="/dashboard/about/delete/{{about[0]}}">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}<button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i></button></form>
+        </td>
+    </tr>
+{% endfor%}
+{% else %}
+<tr><td colspan="4"><p class="text-center">No About Record</p></td></tr>
+{% endif %}
+</tbody>
+<tfoot>
+    <th>#</th>
+    <th>About Title</th>
+    <th>About Date</th>
+    <th>Actions</th>
+</tfoot>
+</table>
+
+
+
+
+</div>
+</div>
+</div>
+
+{% endblock %}

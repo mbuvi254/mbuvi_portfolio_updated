@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if about :%}
+{% for about in about:%}
+<section class="box">
+    <div class="px-4 pt-5 my-5 text-center border-bottom">
+        <div class="container px-5">
+            <img src="/static/about/{{about[3]}}" class="img-fluid border rounded-3 shadow-lg mb-4" alt="About Image" width="200" height="200" loading="lazy">
+        </div>
+        <div class="col-lg-6 mx-auto">
+            <h2 class="text-center">{{about[1]}}</h2>
+            <p class="lead mb-2">Software Developer</p>
+            <p class="lead mb-2">Nairobi,Kenya</p> 
+            
+            <div class="container">
+                <ul class="nav justify-content-center">
+                  <li class="nav-item"><a href="https://www.linkedin.com/in/daniel-mulatya-546794161/" class="nav-link px-2 "> <i class="fa-brands fa-linkedin fa-3x"></i></a></li>
+                  <li class="nav-item"><a href="https://github.com/mbuvi254" class="nav-link px-2 "> <i class="fa-brands fa-github-square fa-3x"></i></a></li>
+                  <li class="nav-item"><a href="mailto:mbuvi@cm.co.ke" class="nav-link px-2 "> <i class="fa-solid fa-envelope fa-3x"></i></a></li>
+                </ul>
+            </div>
+
+            <div class="d-grid gap-2 d-sm-flex justify-content-center mb-5">
+                <a class="btn btn-outline-dark btn-lg g" href="/resume"><i class="fa-solid fa-user"></i> Resume</a>
+                <a class="btn btn-outline-dark btn-lg g" href="/projects"><i class="fa-solid fa-diagram-project"></i> Projects</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="box">
+    <div class="container">
+        <h1 class="text-center">About Me</h1>
+        <div class="shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+            <div class="card">
+                <div class="card-body">
+                    <p class="lead">{{about[2]}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endfor %}
+{% else: %}
+<div class="shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+    <div class="card">
+    <div class="card-body">
+<p class="card-text">No About Found</p>
+    </div>
+    </div>
+</div>
+{% endif%}
+
+{% if education :%}
+<section class="box">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="mb-4 text-center">Education</h1>
+                {% for education in education %}
+                <div class="shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fa-solid fa-graduation-cap"></i> {{education[1]}}</h5>
+                            <p class="card-text">{{education[2]}}</p>
+                            <p class="card-text">{{education[3].strftime('%B ,%Y')}}</p> 
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% else:%}
+<div class="shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+    <div class="card">
+    <div class="card-body">
+<p class="card-text">No Education Found</p>
+    </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

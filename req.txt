@@ -1,0 +1,15 @@
+blinker
+cachelib
+click
+Flask
+Flask-Mail
+Flask-Session
+itsdangerous
+Jinja2
+MarkupSafe
+msgspec
+PyMySQL
+Werkzeug
+
+cryptography
+python-dotenv

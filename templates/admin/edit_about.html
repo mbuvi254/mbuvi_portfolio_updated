@@ -1,0 +1,36 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+<div class="card card-secondary">
+    <div class="card-header">
+        <h6>{{ptitle}}</h6>
+    </div>
+<div class="card-body">
+    {% if about :%}
+<form action="/dashboard/about/edit/{{about[0]}}" method="POST" enctype="multipart/form-data">{% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+    <div class="form-group">
+        <img src="{{url_for('static',filename='projects/about[3]')}}">
+        <img src="/static/about/{{about[3]}}" height="150rem">
+       </div>
+    <div class="form-group">
+        <label for="description">Project Image</label>
+        <input type="file" name="file" class="form-control" id="file">
+    </div>
+    <div class="form-group">
+    <label for="description">Title</label>
+    <input type="text" name="title" class="form-control" value="{{about[1]}}" id="title" required>
+    </div>
+    <div class="form-group">
+    <label for="description">Description</label>
+    <textarea class="form-control" name="details" id="details" value="{{about[2]}}" rows="3" required>{{about[2]}}</textarea>
+    </div>
+</div>
+
+    <button type="submit" class="btn btn-primary btn-block">Edit About</button>
+
+</form>
+{% endif%}
+</div>
+
+{% endblock %}
+
+  

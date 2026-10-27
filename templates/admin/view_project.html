@@ -1,0 +1,21 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+{% if project :%}
+<div class="card card-secondary">
+    <div class="card-header">
+        <h6>{{ptitle}}</h6>
+    </div>
+<div class="card-body">
+<img src="/static/projects/{{project[3]}}" height="150rem">
+<h2 class="">{{project[1]}}</h2>
+<p>Website :<a href="https://{{project[5]}}">{{project[5]}}</a></p>
+<p>Github :<a href="https://{{project[6]}}">{{project[6]}}</a></p>
+<p>Category : {{project[9]}} </p>
+<p class="lead">{{project[2]}}</p>
+
+{% endif %}
+
+</div>
+</div>
+
+{% endblock%}

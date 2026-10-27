@@ -1,0 +1,32 @@
+{% extends 'admin/base.html'%}
+{% block content %}
+    {% if admin %}
+    <style>
+        /* Custom styles */
+        .profile-image {
+          width: 150px;
+          height: 150px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+      </style>
+    
+    
+      <div class="container mt-5">
+        <div class="row">
+          <div class="col-md-4">
+            <img src="/static/admin/{{admin[5]}}" alt="Profile Image" class="profile-image">
+          </div>
+          <div class="col-md-8">
+            <h1>Admin Profile</h1>
+            <p><strong>Name:</strong> {{admin[1]}} {{admin[1]}}</p>
+            <p><strong>Email:</strong> {{admin[4]}}</p>
+            <p><strong>Location:</strong> New York, USA</p>
+            <p><strong>Bio:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+            <a class="btn btn-primary" href="/dashboard/profile/update">Edit Profile</a>
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+    {% endblock %}

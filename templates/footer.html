@@ -1,0 +1,39 @@
+<section>
+<div class="container">
+    <footer class="py-3 my-4 ">
+      <ul class="nav justify-content-center border-bottom pb-3 mb-3">
+        <li class="nav-item"><a href="https://www.linkedin.com/in/daniel-mulatya-546794161/" class="nav-link px-2 "> <i class="fa-brands fa-linkedin fa-3x"></i></a></li>
+        <li class="nav-item"><a href="https://github.com/mbuvi254" class="nav-link px-2 "> <i class="fa-brands fa-github-square fa-3x"></i></a></li>
+        <li class="nav-item"><a href="mailto:mbuvi@cm.co.ke" class="nav-link px-2 "> <i class="fa-solid fa-envelope fa-3x"></i></a></li>
+      </ul>
+      <p class="text-center text-body-secondary"><a href="https://www.cybermaisha.co.ke">Cybermaisha &copy; 2024 </a></p>
+    </footer>
+  </div>
+</section>
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/jquery/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js"></script>
+<script>
+ <!-- Isotope -->
+ $(document).ready(function(){
+  // Initialize Isotope
+  var $grid = $('#projects').isotope({
+      itemSelector: '.project-item',
+      layoutMode: 'fitRows'
+  });
+
+  // Filter items on button click
+  $('#filters').on( 'click', 'button', function() {
+      var filterValue = $(this).attr('data-filter');
+      $grid.isotope({ filter: filterValue });
+  });
+
+});
+</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js"></script>
+<script src="/static/js/script.js" t></script> 
+</body>
+</html>
