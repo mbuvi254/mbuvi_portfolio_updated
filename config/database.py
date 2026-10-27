@@ -1,3 +1,4 @@
+import os
 import pymysql
 from flask import current_app, g
 from werkzeug.local import LocalProxy
@@ -11,17 +12,20 @@ def close_connection(error=None):
 
 
 def init_app(app):
+    # app.py loads .env before initialization; deployment environment values win.
+    defaults = {
+        'DB_HOST': os.environ.get('DB_HOST', 'localhost'),
+        'DB_PORT': int(os.environ.get('DB_PORT', '3306')),
+        'DB_USER': os.environ.get('DB_USER'),
+        'DB_PASSWORD': os.environ.get('DB_PASSWORD'),
+        'DB_NAME': os.environ.get('DB_NAME'),
+    }
+    for key, value in defaults.items():
+        app.config.setdefault(key, value)
     app.teardown_appcontext(close_connection)
 
 
 class Database:
-    def __init__(self):
-        self.host="localhost"
-        self.user="cyberma3_cm"
-        self.password="2025Cybermaisha@"
-        self.database="cyberma3_mbuvi_db"
-        
-    
     def get_connection(self):
         # Models can be constructed at import time without opening a socket.
         return LocalProxy(self._request_connection)
@@ -32,12 +36,18 @@ class Database:
         return g._mysql_connection
 
     def _connect(self):
+        config = current_app.config
+        missing = [key for key in ('DB_USER', 'DB_PASSWORD', 'DB_NAME')
+                   if config.get(key) is None or (key != 'DB_PASSWORD' and not config[key])]
+        if missing:
+            raise RuntimeError('Missing database settings: ' + ', '.join(missing) +
+                               '. Configure them in .env or the deployment environment.')
         return pymysql.connect(
-            host=current_app.config.get("DB_HOST", self.host),
-            user=current_app.config.get("DB_USER", self.user),
-            password=current_app.config.get("DB_PASSWORD", self.password),
-            database=current_app.config.get("DB_NAME", self.database),
+            host=config.get('DB_HOST', 'localhost'),
+            port=int(config.get('DB_PORT', 3306)),
+            user=config['DB_USER'],
+            password=config['DB_PASSWORD'],
+            database=config['DB_NAME'],
             connect_timeout=10,
             init_command="SET time_zone = '+03:00'"
         )
-        

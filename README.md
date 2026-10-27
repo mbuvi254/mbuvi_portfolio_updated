@@ -40,7 +40,7 @@ source .venv/bin/activate
 pip install -r req.txt
 ```
 
-Configure the MySQL connection in `config/database.py` for your environment. The adapter also supports Flask configuration overrides named `DB_HOST`, `DB_USER`, `DB_PASSWORD` and `DB_NAME`; the application does not currently map those names from `.env` automatically.
+Configure MySQL using `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` and `DB_NAME` in the private `.env` file. The application loads these into Flask configuration; explicitly supplied Flask configuration values are preserved. Database credentials are not stored in the Python source.
 
 For a new installation, create a private environment file:
 
@@ -77,6 +77,11 @@ The application loads `.env` with `python-dotenv`. Existing process environment 
 
 | Variable | Purpose |
 | --- | --- |
+| `DB_HOST` | MySQL hostname; default `localhost`. |
+| `DB_PORT` | MySQL port; default `3306`. |
+| `DB_USER` | MySQL account name. |
+| `DB_PASSWORD` | Private MySQL password. |
+| `DB_NAME` | MySQL database name. |
 | `MAIL_SERVER` | SMTP hostname; current mailbox uses `mail.cm.co.ke`. |
 | `MAIL_PORT` | SMTP port; default `587`. |
 | `MAIL_USE_TLS` | Enable STARTTLS; default `true`. |
@@ -191,7 +196,7 @@ node tests/test_service_worker.cjs
 node --check static/js/engagement.js
 ```
 
-The current suite contains **40 Python tests**, plus service-worker checks. Coverage includes publishing, consent rules, filters, uploads, enquiry workflow, email failure/retry, analytics, SEO, CSRF, authentication, rate limits, password migration, TOTP/recovery codes, password-reset expiry and session revocation. Tests use isolated extension stores and mock MySQL/mail where needed.
+The current suite contains **43 Python tests**, plus service-worker checks. Coverage includes publishing, consent rules, filters, uploads, enquiry workflow, email failure/retry, analytics, SEO, CSRF, authentication, rate limits, password migration, TOTP/recovery codes, password-reset expiry and session revocation. Tests use isolated extension stores and mock MySQL/mail where needed.
 
 ## Brand assets and PWA
 

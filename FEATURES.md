@@ -52,6 +52,7 @@ Set these environment values for deployment:
 - `PORTFOLIO_PUBLIC_URL`: canonical site origin, e.g. `https://mbuvi.cm.co.ke`. It is also used for password reset email links. Use `http://127.0.0.1:5000` for local reset testing.
 - `PORTFOLIO_HTTPS=1`: enable secure cookies on an HTTPS deployment; keep unset on plain-HTTP localhost.
 - `PORTFOLIO_SECRET_KEY`: optional alternative to the generated private key file.
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: MySQL connection settings, loaded from `.env` or the deployment environment. Credentials are not embedded in `config/database.py`.
 - `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER`: outgoing mail configuration. The sender should be an address authorized by the mail server.
 
 Upload the changed Python modules, templates, CSS, JavaScript, brand sharing image and `req.txt`, while preserving the private instance directory and uploads. Restart the existing Flask/Passenger process. Visit `/dashboard` to manage the new features. Existing `/admin` links still redirect to `/dashboard`.
