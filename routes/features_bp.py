@@ -202,7 +202,7 @@ def manage_cv():
                 upload.stream.seek(0)
                 name=secrets.token_hex(8)+'-'+secure_filename(upload.filename)[:150]
                 folder=Path(current_app.static_folder)/'resume'
-                folder.mkdir(exist_ok=True)
+                folder.mkdir(parents=True,exist_ok=True)
                 destination=folder/name
                 upload.save(destination)
                 try:

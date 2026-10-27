@@ -274,3 +274,46 @@ class FeatureTests(TestCase):
             send.assert_called_once()
         with self.app.app_context():
             self.assertEqual(store.db().execute('SELECT state FROM notifications WHERE message_id=7').fetchone()[0],'sent')
+
+    def test_every_new_dashboard_screen_renders_for_an_authenticated_admin(self):
+        self.sign_in()
+        with self.app.app_context(): seed_services()
+        with patch('controllers.contactController.get_messages',return_value=[MESSAGE]), \
+             patch('controllers.contactController.get_message',return_value=MESSAGE), \
+             patch('controllers.contactController.sent_messages',return_value=[]), \
+             patch('routes.admin_bp.Analytics.dashboard',return_value=None), \
+             patch('routes.admin_bp.admin_model.count_projects',return_value=3), \
+             patch('routes.admin_bp.admin_model.count_rmessages',return_value=1), \
+             patch('routes.admin_bp.admin_model.count_smessages',return_value=0):
+            paths=['/dashboard','/dashboard/cv','/dashboard/enquiries','/dashboard/enquiries/7','/dashboard/replies','/dashboard/conversions','/dashboard/security','/dashboard/register']
+            paths += ['/dashboard/content/'+kind for kind in ('case','service','post','testimonial')]
+            paths += ['/dashboard/content/'+kind+'/new' for kind in ('case','service','post','testimonial')]
+            for path in paths:
+                with self.subTest(path=path):
+                    response=self.client.get(path)
+                    self.assertEqual(response.status_code,200)
+                    self.assertEqual(response.headers['Cache-Control'],'no-store')
+
+    def test_case_study_gallery_upload_is_saved_and_displayed(self):
+        import base64
+        self.sign_in()
+        png=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jS1kAAAAASUVORK5CYII=')
+        with patch('controllers.projectController.get_project',return_value=PROJECT):
+            response=self.post('/dashboard/content/case/new',dict(title='Survey case study',slug='1',problem='Survey entry',solution='A clear form',role='Developer',results='Documented workflows',tags='Flask',industry='Research',project_type='Portal',published='on',screenshots=(io.BytesIO(png),'screen.png')),content_type='multipart/form-data')
+        self.assertEqual(response.status_code,302)
+        with self.app.app_context(): item=store.content('case','1',True)
+        self.assertEqual(len(item['data']['screenshots']),1)
+        filename=item['data']['screenshots'][0]
+        self.assertEqual((Path(self.app.static_folder)/filename.removeprefix('/static/')).read_bytes(),png)
+        self.assertIn(filename,self.client.get('/project/1').get_data(as_text=True))
+
+    def test_valid_cv_upload_can_be_selected_immediately(self):
+        self.sign_in()
+        fake=MagicMock()
+        fake.cursor.return_value.__enter__.return_value.lastrowid=4
+        with patch('config.database.Database.get_connection',return_value=fake):
+            response=self.post('/dashboard/cv',dict(action='upload',make_active='on',file=(io.BytesIO(b'%PDF-1.4\n% CV upload test\n'),'cv.pdf')),content_type='multipart/form-data')
+        self.assertEqual(response.status_code,302)
+        fake.commit.assert_called_once()
+        with self.app.app_context(): self.assertEqual(store.setting('active_resume'),'4')
+        self.assertEqual(len(list((Path(self.app.static_folder)/'resume').glob('*.pdf'))),1)
