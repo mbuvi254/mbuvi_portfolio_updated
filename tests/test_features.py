@@ -1,3 +1,4 @@
+from mysql_support import configure_mysql
 import io
 import json
 import re
@@ -26,7 +27,8 @@ class FeatureTests(TestCase):
         self.addCleanup(self.directory.cleanup)
         root=Path(self.directory.name)
         self.app=Flask(__name__,instance_path=str(root/'instance'),template_folder=str(ROOT/'templates'),static_folder=str(root/'static'))
-        self.app.config.update(TESTING=True,MAIL_USERNAME='sender@example.test',PORTFOLIO_DB=str(root/'features.sqlite3'))
+        self.app.config.update(TESTING=True,MAIL_USERNAME='sender@example.test')
+        configure_mysql(self.app, self.addCleanup)
         security.init_app(self.app)
         self.app.register_blueprint(home_bp)
         self.app.register_blueprint(admin_bp)
@@ -166,7 +168,7 @@ class FeatureTests(TestCase):
             self.assertNotIn(secret,encrypted)
             self.assertEqual(security.decrypt(encrypted),secret)
             with store.db() as connection:
-                connection.execute('INSERT INTO security(aid,secret,recovery) VALUES(?,?,?)',(9,encrypted,json.dumps([security.hash_token('recovery01')])))
+                connection.execute('INSERT INTO security(aid,secret,recovery) VALUES(%s,%s,%s)',(9,encrypted,json.dumps([security.hash_token('recovery01')])))
             with patch('services.security.time.time',return_value=59):
                 self.assertTrue(security.verify_factor(9,'287082'))
                 self.assertFalse(security.verify_factor(9,'287082'))
@@ -204,12 +206,14 @@ class FeatureTests(TestCase):
         self.sign_in()
         with self.app.app_context():
             with store.db() as connection:
-                connection.execute('INSERT INTO reset_tokens(token,aid,expires) VALUES(?,?,?)',(security.hash_token('valid-token'),9,int(time.time())+1000))
-                connection.execute('INSERT INTO reset_tokens(token,aid,expires) VALUES(?,?,?)',(security.hash_token('expired'),9,int(time.time())-1))
+                connection.execute('INSERT INTO reset_tokens(token,aid,expires) VALUES(%s,%s,%s)',(security.hash_token('valid-token'),9,int(time.time())+1000))
+                connection.execute('INSERT INTO reset_tokens(token,aid,expires) VALUES(%s,%s,%s)',(security.hash_token('expired'),9,int(time.time())-1))
         self.assertEqual(self.client.get('/dashboard/password/update/expired').status_code,400)
         fake=MagicMock()
-        with patch('config.database.Database.get_connection',return_value=fake):
-            response=self.post('/dashboard/password/update/valid-token',dict(new_password='a new strong password',confirm_password='a new strong password'))
+        with self.app.app_context():
+            store.db()
+            with patch('config.database.Database.get_connection',return_value=fake):
+                response=self.post('/dashboard/password/update/valid-token',dict(new_password='a new strong password',confirm_password='a new strong password'))
         self.assertEqual(response.status_code,302)
         self.assertEqual(self.client.get('/dashboard/password/update/valid-token').status_code,400)
         with self.app.app_context():
@@ -311,8 +315,10 @@ class FeatureTests(TestCase):
         self.sign_in()
         fake=MagicMock()
         fake.cursor.return_value.__enter__.return_value.lastrowid=4
-        with patch('config.database.Database.get_connection',return_value=fake):
-            response=self.post('/dashboard/cv',dict(action='upload',make_active='on',file=(io.BytesIO(b'%PDF-1.4\n% CV upload test\n'),'cv.pdf')),content_type='multipart/form-data')
+        with self.app.app_context():
+            store.db()
+            with patch('config.database.Database.get_connection',return_value=fake):
+                response=self.post('/dashboard/cv',dict(action='upload',make_active='on',file=(io.BytesIO(b'%PDF-1.4\n% CV upload test\n'),'cv.pdf')),content_type='multipart/form-data')
         self.assertEqual(response.status_code,302)
         fake.commit.assert_called_once()
         with self.app.app_context(): self.assertEqual(store.setting('active_resume'),'4')

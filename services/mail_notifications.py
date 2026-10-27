@@ -19,7 +19,7 @@ def send_enquiry_notification(mailer,message_id,name,phone,email,subject,body):
     if isinstance(message_id,int):
         try:
             with store.db() as connection:
-                connection.execute('INSERT INTO notifications(message_id,state,updated) VALUES(?,?,?) ON CONFLICT(message_id) DO UPDATE SET state=excluded.state,updated=excluded.updated', (message_id,state,store.stamp()))
+                connection.execute('INSERT INTO notifications(message_id,state,updated) VALUES(%s,%s,%s) ON DUPLICATE KEY UPDATE state=VALUES(state),updated=VALUES(updated)', (message_id,state,store.stamp()))
         except Exception:
             current_app.logger.exception('Notification delivery state could not be saved')
     return state=='sent'

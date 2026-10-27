@@ -1,4 +1,4 @@
-import tempfile
+from mysql_support import configure_mysql
 from datetime import date, datetime
 from pathlib import Path
 from unittest import TestCase
@@ -69,9 +69,8 @@ class AdminDashboardTests(TestCase):
         import routes.admin_bp as routes
         cls.routes = routes
         cls.app = Flask(__name__, template_folder=str(ROOT / 'templates'), static_folder=str(ROOT / 'static'))
-        cls._storage=tempfile.TemporaryDirectory()
-        cls.addClassCleanup(cls._storage.cleanup)
-        cls.app.config.update(TESTING=True, SECRET_KEY='test', PORTFOLIO_DB=cls._storage.name+'/features.sqlite3')
+        cls.app.config.update(TESTING=True, SECRET_KEY='test')
+        configure_mysql(cls.app, cls.addClassCleanup)
         from services.portfolio_store import close_db
         cls.app.teardown_appcontext(close_db)
         cls.app.register_blueprint(routes.admin_bp)
@@ -133,9 +132,8 @@ class DashboardLoginTests(TestCase):
         import routes.admin_bp as routes
         cls.routes = routes
         cls.app = Flask(__name__, template_folder=str(ROOT / 'templates'), static_folder=str(ROOT / 'static'))
-        cls._storage=tempfile.TemporaryDirectory()
-        cls.addClassCleanup(cls._storage.cleanup)
-        cls.app.config.update(TESTING=True, SECRET_KEY='test', PORTFOLIO_DB=cls._storage.name+'/features.sqlite3')
+        cls.app.config.update(TESTING=True, SECRET_KEY='test')
+        configure_mysql(cls.app, cls.addClassCleanup)
         from services.portfolio_store import close_db
         cls.app.teardown_appcontext(close_db)
         cls.app.register_blueprint(routes.admin_bp)

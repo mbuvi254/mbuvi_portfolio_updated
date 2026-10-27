@@ -418,8 +418,8 @@ def admin_forgot_password_route():
         if admin and admin[7]==1:
             token=secrets.token_urlsafe(32)
             with store.db() as connection:
-                connection.execute('UPDATE reset_tokens SET used=1 WHERE aid=?',(admin[0],))
-                connection.execute('INSERT INTO reset_tokens(token,aid,expires) VALUES(?,?,?)',(security.hash_token(token),admin[0],int(time.time())+1800))
+                connection.execute('UPDATE reset_tokens SET used=1 WHERE aid=%s',(admin[0],))
+                connection.execute('INSERT INTO reset_tokens(token,aid,expires) VALUES(%s,%s,%s)',(security.hash_token(token),admin[0],int(time.time())+1800))
             link=current_app.config['PUBLIC_BASE_URL']+url_for('admin_bp.admin_password_update_route',reset_code=token)
             try:
                 mail.send(Message('Reset your portfolio password',sender=current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config['MAIL_USERNAME'],recipients=[email],body='Reset your password within 30 minutes: '+link))
@@ -431,7 +431,7 @@ def admin_forgot_password_route():
 
 @admin_bp.route('/dashboard/password/update/<reset_code>',methods=['POST','GET'])
 def admin_password_update_route(reset_code):
-    record=store.db().execute('SELECT * FROM reset_tokens WHERE token=? AND used=0 AND expires>?',(security.hash_token(reset_code),int(time.time()))).fetchone()
+    record=store.db().execute('SELECT * FROM reset_tokens WHERE token=%s AND used=0 AND expires>%s',(security.hash_token(reset_code),int(time.time()))).fetchone()
     if not record:
         return render_template('admin/password_help.html',notice='This reset link is invalid or expired. Request another.'),400
     error=None
@@ -445,7 +445,7 @@ def admin_password_update_route(reset_code):
                 error='Enter a valid authenticator or recovery code.'
             else:
                 with store.db() as connection:
-                    consumed=connection.execute('UPDATE reset_tokens SET used=1 WHERE token=? AND used=0',(record['token'],))
+                    consumed=connection.execute('UPDATE reset_tokens SET used=1 WHERE token=%s AND used=0',(record['token'],))
                     if consumed.rowcount!=1: abort(400)
                 try:
                     from config.database import Database
@@ -454,9 +454,9 @@ def admin_password_update_route(reset_code):
                         cursor.execute('UPDATE admin SET password=%s WHERE aid=%s',(generate_password_hash(password),record['aid']))
                         mysql.commit()
                 except Exception:
-                    with store.db() as connection: connection.execute('UPDATE reset_tokens SET used=0 WHERE token=?',(record['token'],))
+                    with store.db() as connection: connection.execute('UPDATE reset_tokens SET used=0 WHERE token=%s',(record['token'],))
                     raise
-                with store.db() as connection: connection.execute('UPDATE sessions SET revoked=1 WHERE aid=?',(record['aid'],))
+                with store.db() as connection: connection.execute('UPDATE sessions SET revoked=1 WHERE aid=%s',(record['aid'],))
                 session.clear()
                 flash('Password updated. Sign in again.','success')
                 return redirect(url_for('admin_bp.admin_login_route'))

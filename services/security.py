@@ -75,19 +75,19 @@ def matching_step(secret, code):
 
 
 def factor_enabled(aid):
-    row = db().execute('SELECT secret FROM security WHERE aid=?', (aid,)).fetchone()
+    row = db().execute('SELECT secret FROM security WHERE aid=%s', (aid,)).fetchone()
     return bool(row and row['secret'])
 
 
 def verify_factor(aid, code):
-    row = db().execute('SELECT * FROM security WHERE aid=?', (aid,)).fetchone()
+    row = db().execute('SELECT * FROM security WHERE aid=%s', (aid,)).fetchone()
     if not row or not row['secret']:
         return False
     code = code.strip().replace(' ','')
     step = matching_step(decrypt(row['secret']), code)
     if step is not None:
         with db() as connection:
-            result=connection.execute('UPDATE security SET last_step=? WHERE aid=? AND last_step<?', (step,aid,step))
+            result=connection.execute('UPDATE security SET last_step=%s WHERE aid=%s AND last_step<%s', (step,aid,step))
             return result.rowcount == 1
     import json
     hashes = json.loads(row['recovery'])
@@ -95,7 +95,7 @@ def verify_factor(aid, code):
     if target in hashes:
         hashes.remove(target)
         with db() as connection:
-            result=connection.execute('UPDATE security SET recovery=? WHERE aid=? AND recovery=?', (json.dumps(hashes),aid,row['recovery']))
+            result=connection.execute('UPDATE security SET recovery=%s WHERE aid=%s AND recovery=%s', (json.dumps(hashes),aid,row['recovery']))
             return result.rowcount == 1
     return False
 
@@ -106,15 +106,15 @@ def rate_key(action, identity=''):
 
 def throttled(action, identity='', limit=5, window=900):
     key=rate_key(action,identity)
-    count=db().execute('SELECT COUNT(*) FROM attempts WHERE identity=? AND created>?', (key,int(time.time())-window)).fetchone()[0]
+    count=db().execute('SELECT COUNT(*) FROM attempts WHERE identity=%s AND created>%s', (key,int(time.time())-window)).fetchone()[0]
     return count >= limit
 
 
 def attempt(action, identity=''):
     now=int(time.time())
     with db() as connection:
-        connection.execute('DELETE FROM attempts WHERE created<?', (now-86400,))
-        connection.execute('INSERT INTO attempts(identity,created) VALUES(?,?)', (rate_key(action,identity),now))
+        connection.execute('DELETE FROM attempts WHERE created<%s', (now-86400,))
+        connection.execute('INSERT INTO attempts(identity,created) VALUES(%s,%s)', (rate_key(action,identity),now))
 
 
 def allow_attempt(action, identity='', limit=5, window=900):
@@ -122,12 +122,12 @@ def allow_attempt(action, identity='', limit=5, window=900):
     now=int(time.time())
     key=rate_key(action,identity)
     with db() as connection:
-        connection.execute('BEGIN IMMEDIATE')
-        count=connection.execute('SELECT COUNT(*) FROM attempts WHERE identity=? AND created>?',(key,now-window)).fetchone()[0]
+        connection.lock('write')
+        count=connection.execute('SELECT COUNT(*) FROM attempts WHERE identity=%s AND created>%s',(key,now-window)).fetchone()[0]
         if count>=limit:
             return False
-        connection.execute('DELETE FROM attempts WHERE created<?',(now-86400,))
-        connection.execute('INSERT INTO attempts(identity,created) VALUES(?,?)',(key,now))
+        connection.execute('DELETE FROM attempts WHERE created<%s',(now-86400,))
+        connection.execute('INSERT INTO attempts(identity,created) VALUES(%s,%s)',(key,now))
     return True
 
 
@@ -141,8 +141,8 @@ def establish_session(admin):
     token=secrets.token_urlsafe(32)
     now=int(time.time())
     with db() as connection:
-        connection.execute('DELETE FROM sessions WHERE expires<?', (now-86400,))
-        connection.execute('INSERT INTO sessions(token,aid,ip,agent,created,seen,expires) VALUES(?,?,?,?,?,?,?)',
+        connection.execute('DELETE FROM sessions WHERE expires<%s', (now-86400,))
+        connection.execute('INSERT INTO sessions(token,aid,ip,agent,created,seen,expires) VALUES(%s,%s,%s,%s,%s,%s,%s)',
             (hash_token(token),admin[0],request.remote_addr or 'unknown',request.user_agent.string[:240],now,now,now+7200))
     session.update(aid=admin[0],firstName=admin[1],lastName=admin[2],phoneNumber=admin[3],email=admin[4],profile_file=admin[5],status=admin[7],auth_token=token)
     try:
@@ -161,7 +161,7 @@ def end_session():
     token=session.get('auth_token')
     if token:
         with db() as connection:
-            connection.execute('UPDATE sessions SET revoked=1 WHERE token=?', (hash_token(token),))
+            connection.execute('UPDATE sessions SET revoked=1 WHERE token=%s', (hash_token(token),))
     session.clear()
 
 
@@ -184,7 +184,7 @@ def init_app(app):
         g.authenticated=False
         if session.get('aid'):
             token=session.get('auth_token','')
-            record=db().execute('SELECT * FROM sessions WHERE token=? AND aid=?', (hash_token(token),session['aid'])).fetchone()
+            record=db().execute('SELECT * FROM sessions WHERE token=%s AND aid=%s', (hash_token(token),session['aid'])).fetchone()
             now=int(time.time())
             if not record or record['revoked'] or record['expires']<=now:
                 session.clear()
@@ -192,7 +192,7 @@ def init_app(app):
                 g.authenticated=True
                 if now-record['seen']>=60:
                     with db() as connection:
-                        connection.execute('UPDATE sessions SET seen=? WHERE token=?', (now,hash_token(token)))
+                        connection.execute('UPDATE sessions SET seen=%s WHERE token=%s', (now,hash_token(token)))
         is_admin = request.path == '/dashboard' or request.path.startswith('/dashboard/')
         if is_admin and request.endpoint not in public and not g.authenticated:
             return redirect(url_for('admin_bp.admin_login_route'))

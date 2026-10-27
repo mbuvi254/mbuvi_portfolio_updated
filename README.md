@@ -57,7 +57,7 @@ Initialize the databases:
 # New MySQL database only: create the original tables.
 flask --app app init-db
 
-# Initialize extension data, starting services and drafts for existing projects.
+# Initialize MySQL feature tables, starting services and project drafts.
 flask --app app init-features
 ```
 
@@ -176,17 +176,22 @@ See [DASHBOARD.md](DASHBOARD.md) for chart, log and PWA details.
 
 | Location | Contents |
 | --- | --- |
-| MySQL | Original portfolio records, administrators, CV records, incoming enquiries and visit logs. |
-| `instance/portfolio.sqlite3` | New content, case-study metadata, enquiry workflow, replies, notification delivery state, engagement and security state. |
+| MySQL | All portfolio data: original records, administrators, CV records, enquiries, visit logs, content, workflow, replies, notification state, engagement and security state. New tables use the `portfolio_` prefix. |
 | `instance/.secret_key` | Generated application secret when no environment override is supplied. |
 | `flask_session/` | Server-side session files. |
 | `static/projects/gallery/` | Additional case-study screenshots. |
 | `static/resume/` | CV PDFs. |
 | `static/about/`, `static/admin/`, `static/projects/` | Existing uploaded images. |
 
-Back up the MySQL database, uploads, SQLite store and matching application secret. Losing or changing the secret makes stored authenticator secrets unreadable. Use SQLite's backup API for a consistent live backup, rather than copying only its main file while WAL writes are active.
+Back up the MySQL database, uploads and matching application secret. Losing or changing the secret makes stored authenticator secrets unreadable. The application no longer uses SQLite for runtime data.
 
-The SQLite extension store uses WAL and expects application workers on one host with shared storage. A multi-host deployment needs a shared database implementation for this extension data.
+For an existing installation with the previous SQLite store, stop the application and run:
+
+```bash
+.venv/bin/flask --app app migrate-features-to-mysql instance/portfolio.sqlite3
+```
+
+The importer preserves IDs and verifies every imported row in one transaction. Identical rows are accepted on a rerun; conflicting rows abort the import without overwriting data. Keep the original SQLite file as a private migration backup. For new installations, `flask --app app init-features` creates the MySQL tables and starting service/case-study entries.
 
 ## Tests
 
@@ -196,7 +201,7 @@ node tests/test_service_worker.cjs
 node --check static/js/engagement.js
 ```
 
-The current suite contains **43 Python tests**, plus service-worker checks. Coverage includes publishing, consent rules, filters, uploads, enquiry workflow, email failure/retry, analytics, SEO, CSRF, authentication, rate limits, password migration, TOTP/recovery codes, password-reset expiry and session revocation. Tests use isolated extension stores and mock MySQL/mail where needed.
+The regression suite includes Python tests and service-worker checks. Coverage includes publishing, consent rules, filters, uploads, enquiry workflow, email failure/retry, analytics, SEO, CSRF, authentication, rate limits, password migration, TOTP/recovery codes, password-reset expiry and session revocation. Feature tests use disposable MySQL tables with random `test_` prefixes in the configured database and remove them afterward; legacy records and outgoing mail are mocked. Configure `.env` before running these integration tests.
 
 ## Brand assets and PWA
 

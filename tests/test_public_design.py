@@ -1,4 +1,4 @@
-import tempfile
+from mysql_support import configure_mysql
 """Public design integration checks without database writes or outgoing mail."""
 import importlib.util
 from pathlib import Path
@@ -31,9 +31,8 @@ class PublicDesignTests(unittest.TestCase):
         with patch.dict(sys.modules, modules):
             spec.loader.exec_module(cls.routes)
         cls.app = Flask(__name__, template_folder=str(ROOT / 'templates'), static_folder=str(ROOT / 'static'))
-        cls._storage=tempfile.TemporaryDirectory()
-        cls.addClassCleanup(cls._storage.cleanup)
-        cls.app.config.update(TESTING=True, SECRET_KEY='test', PORTFOLIO_DB=cls._storage.name+'/features.sqlite3')
+        cls.app.config.update(TESTING=True, SECRET_KEY='test')
+        configure_mysql(cls.app, cls.addClassCleanup)
         from services.portfolio_store import close_db
         cls.app.teardown_appcontext(close_db)
         cls.app.register_blueprint(cls.routes.home_bp)

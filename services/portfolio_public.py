@@ -1,4 +1,5 @@
 import json
+import click
 import os
 from datetime import datetime
 from pathlib import Path
@@ -45,8 +46,16 @@ def init_app(app):
             SubElement(item,'loc').text=app.config['PUBLIC_BASE_URL']+path
         return Response(tostring(root,encoding='utf-8',xml_declaration=True),mimetype='application/xml')
 
+    @app.cli.command('migrate-features-to-mysql')
+    @click.argument('source', type=click.Path(exists=True, dir_okay=False))
+    def migrate_features(source):
+        from services.portfolio_migration import migrate
+        for table, count in migrate(source).items():
+            print(f'{table}: {count} records verified in MySQL')
+
     @app.cli.command('init-features')
     def init_features():
+        store.init_schema()
         seed_services()
         seed_case_drafts()
         print('Portfolio content and security storage are initialized.')

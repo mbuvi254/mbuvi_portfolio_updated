@@ -4,7 +4,7 @@ import hashlib
 import json
 import re
 import secrets
-import sqlite3
+import pymysql
 import time
 from datetime import datetime
 from pathlib import Path
@@ -165,7 +165,7 @@ def content_edit(kind,item_id=None):
                 store.save_content(kind,slug,title,summary,body,data,published,consent,item_id)
                 flash('Content saved.','success')
                 return redirect(url_for('features.content_list',kind=kind))
-            except sqlite3.IntegrityError:
+            except pymysql.IntegrityError:
                 error='That URL slug is already in use.'
         item=dict(id=item_id,slug=slug,title=title,summary=summary,body=body,data=data,published=published,consent=consent)
     return render_template('admin/content_edit.html',ptitle=('Edit ' if item_id else 'New ')+KINDS[kind],kind=kind,item=item,error=error)
@@ -175,7 +175,7 @@ def content_edit(kind,item_id=None):
 def unpublish(kind,item_id):
     if kind not in KINDS: abort(404)
     with store.db() as connection:
-        connection.execute('UPDATE content SET published=0,updated=? WHERE id=? AND kind=?',(store.stamp(),item_id,kind))
+        connection.execute('UPDATE content SET published=0,updated=%s WHERE id=%s AND kind=%s',(store.stamp(),item_id,kind))
     flash('Content moved to drafts.','success')
     return redirect(url_for('features.content_list',kind=kind))
 
@@ -248,12 +248,12 @@ def enquiry(mid):
             status=request.form.get('status')
             if status not in STATES: abort(400)
             with store.db() as connection:
-                connection.execute('INSERT INTO enquiry_state(message_id,status,note,updated) VALUES(?,?,?,?) ON CONFLICT(message_id) DO UPDATE SET status=excluded.status,note=excluded.note,updated=excluded.updated',
+                connection.execute('INSERT INTO enquiry_state(message_id,status,note,updated) VALUES(%s,%s,%s,%s) ON DUPLICATE KEY UPDATE status=VALUES(status),note=VALUES(note),updated=VALUES(updated)',
                     (mid,status,request.form.get('note','')[:5000],store.stamp()))
             flash('Enquiry updated.','success')
             return redirect(url_for('features.enquiry',mid=mid))
         if action=='notify':
-            notification=store.db().execute('SELECT state FROM notifications WHERE message_id=?',(mid,)).fetchone()
+            notification=store.db().execute('SELECT state FROM notifications WHERE message_id=%s',(mid,)).fetchone()
             if notification and notification['state']=='sent':
                 flash('The inbox notification was already sent.','success')
             else:
@@ -269,22 +269,22 @@ def enquiry(mid):
                 error='Add a subject and message.'
             else:
                 with store.db() as connection:
-                    reply_id=connection.execute('INSERT INTO replies(message_id,recipient,subject,body,created) VALUES(?,?,?,?,?)',(mid,message[3],subject,body,store.stamp())).lastrowid
+                    reply_id=connection.execute('INSERT INTO replies(message_id,recipient,subject,body,created) VALUES(%s,%s,%s,%s,%s)',(mid,message[3],subject,body,store.stamp())).lastrowid
                 try:
                     from flask_mail import Message
                     from app import mail
                     mail.send(Message(subject,sender=current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config['MAIL_USERNAME'],recipients=[message[3]],body=body))
                 except Exception:
                     current_app.logger.exception('Enquiry reply delivery failed')
-                    with store.db() as connection: connection.execute("UPDATE replies SET state='failed' WHERE id=?",(reply_id,))
+                    with store.db() as connection: connection.execute("UPDATE replies SET state='failed' WHERE id=%s",(reply_id,))
                     error='The email could not be sent. Your reply is saved below; check mail settings before retrying.'
                 else:
-                    with store.db() as connection: connection.execute("UPDATE replies SET state='sent' WHERE id=?",(reply_id,))
+                    with store.db() as connection: connection.execute("UPDATE replies SET state='sent' WHERE id=%s",(reply_id,))
                     flash('Reply sent.','success')
                     return redirect(url_for('features.enquiry',mid=mid))
-    state=store.db().execute('SELECT * FROM enquiry_state WHERE message_id=?',(mid,)).fetchone()
-    replies=store.db().execute('SELECT * FROM replies WHERE message_id=? ORDER BY id DESC',(mid,)).fetchall()
-    notification=store.db().execute('SELECT state FROM notifications WHERE message_id=?',(mid,)).fetchone()
+    state=store.db().execute('SELECT * FROM enquiry_state WHERE message_id=%s',(mid,)).fetchone()
+    replies=store.db().execute('SELECT * FROM replies WHERE message_id=%s ORDER BY id DESC',(mid,)).fetchall()
+    notification=store.db().execute('SELECT state FROM notifications WHERE message_id=%s',(mid,)).fetchone()
     return render_template('admin/enquiry.html',notification=notification,ptitle='Enquiry',message=message,state=state or dict(status='new',note=''),states=STATES,replies=replies,error=error)
 
 
@@ -337,12 +337,12 @@ def security_settings():
             if not login_admin(session['email'],request.form.get('password',''),1) or not security.verify_factor(aid,request.form.get('code','')):
                 error='Confirm your password and a current authenticator or recovery code.'
             elif action=='disable':
-                with store.db() as connection: connection.execute('DELETE FROM security WHERE aid=?',(aid,))
+                with store.db() as connection: connection.execute('DELETE FROM security WHERE aid=%s',(aid,))
                 flash('Two-factor authentication disabled.','success')
                 return redirect(url_for('features.security_settings'))
             else:
                 recovery=[secrets.token_hex(8) for _ in range(8)]
-                with store.db() as connection: connection.execute('UPDATE security SET recovery=? WHERE aid=?',(json.dumps([security.hash_token(code) for code in recovery]),aid))
+                with store.db() as connection: connection.execute('UPDATE security SET recovery=%s WHERE aid=%s',(json.dumps([security.hash_token(code) for code in recovery]),aid))
         elif action=='begin':
             if security.factor_enabled(aid): abort(400)
             from controllers.adminController import login_admin
@@ -359,18 +359,18 @@ def security_settings():
             else:
                 recovery=[secrets.token_hex(8) for _ in range(8)]
                 with store.db() as connection:
-                    connection.execute('INSERT INTO security(aid,secret,recovery,last_step) VALUES(?,?,?,?) ON CONFLICT(aid) DO UPDATE SET secret=excluded.secret,recovery=excluded.recovery,last_step=excluded.last_step',
+                    connection.execute('INSERT INTO security(aid,secret,recovery,last_step) VALUES(%s,%s,%s,%s) ON DUPLICATE KEY UPDATE secret=VALUES(secret),recovery=VALUES(recovery),last_step=VALUES(last_step)',
                         (aid,security.encrypt(secret),json.dumps([security.hash_token(code) for code in recovery]),step))
                 session.pop('factor_setup',None)
         elif action=='revoke':
             token=request.form.get('token','')
-            with store.db() as connection: connection.execute('UPDATE sessions SET revoked=1 WHERE token=? AND aid=?',(token,aid))
+            with store.db() as connection: connection.execute('UPDATE sessions SET revoked=1 WHERE token=%s AND aid=%s',(token,aid))
             if token==security.hash_token(session['auth_token']):
                 security.end_session()
                 return redirect(url_for('admin_bp.admin_login_route'))
         elif action=='revoke_others':
-            with store.db() as connection: connection.execute('UPDATE sessions SET revoked=1 WHERE aid=? AND token!=?',(aid,security.hash_token(session['auth_token'])))
-    sessions=store.db().execute('SELECT * FROM sessions WHERE aid=? AND revoked=0 AND expires>? ORDER BY created DESC',(aid,int(time.time()))).fetchall()
+            with store.db() as connection: connection.execute('UPDATE sessions SET revoked=1 WHERE aid=%s AND token!=%s',(aid,security.hash_token(session['auth_token'])))
+    sessions=store.db().execute('SELECT * FROM sessions WHERE aid=%s AND revoked=0 AND expires>%s ORDER BY created DESC',(aid,int(time.time()))).fetchall()
     if session.get('factor_setup_expires',0)<=time.time():
         session.pop('factor_setup',None)
     setup=session.get('factor_setup')

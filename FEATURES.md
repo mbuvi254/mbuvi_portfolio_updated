@@ -34,13 +34,15 @@ Sessions expire after two hours. Account security lists active sessions and lets
 
 ## Storage and deployment
 
-The legacy portfolio, administrator accounts, CV records and incoming enquiries remain in **MySQL**. New content, case-study metadata, workflow states, replies, engagement events and security state use a private **SQLite extension store** at `instance/portfolio.sqlite3`. This avoids altering the existing MySQL schema or adding permanent MySQL connections. SQLite uses WAL and a busy timeout; this deployment expects workers on one host with a shared writable instance directory. For a multi-host deployment, migrate the extension store to a shared database first.
+All structured portfolio data is stored in the configured **MySQL** database. Original portfolio tables remain in place; new content, case-study metadata, workflow states, replies, notification status, engagement events and security state use InnoDB tables prefixed with `portfolio_`. Both share one request-scoped MySQL connection. Runtime code does not open SQLite files.
 
-The app creates and retains `instance/.secret_key` with restricted permissions. Alternatively set a persistent `PORTFOLIO_SECRET_KEY` of at least 32 characters before starting the app. **Back up the secret and extension database together.** Losing or changing the secret makes encrypted authenticator secrets unreadable. Do not commit `instance/`, session files or secrets. For a consistent live backup, use SQLite's backup API rather than copying only its main file while WAL writes are active.
+For the previous SQLite deployment, stop the app and run `flask --app app migrate-features-to-mysql instance/portfolio.sqlite3`. The importer preserves identifiers and verifies every row, refusing conflicting data. Retain the retired SQLite file privately as a backup; it is no longer used by the website.
+
+The app creates and retains `instance/.secret_key` with restricted permissions. Alternatively set a persistent `PORTFOLIO_SECRET_KEY` of at least 32 characters before starting the app. **Back up the secret and MySQL database together.** Losing or changing the secret makes encrypted authenticator secrets unreadable. Do not commit `instance/`, session files or secrets. Use your MySQL backup tooling for consistent database backups.
 
 New case-study gallery uploads live in `static/projects/gallery/`; CV files remain in `static/resume/`. Back up these directories and the original MySQL database as well.
 
-Install updated dependencies and initialize the extension store:
+Install updated dependencies and initialize the MySQL feature tables:
 
 ```
 .venv/bin/pip install -r req.txt
@@ -65,7 +67,7 @@ node tests/test_service_worker.cjs
 node --check static/js/engagement.js
 ```
 
-Tests cover publishing and drafts, testimonial consent, project filters and escaped content, enquiry state isolation, email success/failure handling, CV selection/download events, CSRF, unauthorized management routes, login throttling, password hashing/migration, TOTP RFC vectors/replay rejection, recovery-code reuse, session revocation and reset expiry/single use. They use isolated extension databases and mock MySQL/mail where needed.
+Tests cover publishing and drafts, testimonial consent, project filters and escaped content, enquiry state isolation, email success/failure handling, CV selection/download events, CSRF, unauthorized management routes, login throttling, password hashing/migration, TOTP RFC vectors/replay rejection, recovery-code reuse, session revocation and reset expiry/single use. Feature tests use randomly prefixed disposable MySQL tables, cleaned up afterward, with legacy queries and outgoing mail mocked.
 
 ## Mail configuration
 
